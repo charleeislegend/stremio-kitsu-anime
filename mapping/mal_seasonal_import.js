@@ -8,7 +8,8 @@ const { search, animeData } = require('../lib/kitsu_api');
 const { getTvdbId } = require("../lib/fanart");
 
 async function importMalSeason(season) {
-  const imdbMapping = require('../static/data/imdb_mapping');
+  const imdbMapping = require('../static/data/imdb_mapping')
+      .reduce((map, entry) => (map[entry.kitsu_id] = entry, map), {});;
   const malEntries = await getMalSeasonalEntries(season);
   const newMappingEntries = await sequence(malEntries.map(malEntry => () => createImdbMappingEntry(malEntry)));
   const newMappings = newMappingEntries
@@ -42,6 +43,7 @@ async function createImdbMappingEntry(malEntry) {
       malTitle: malEntry.title,
       kitsuId: kitsuId,
       kitsuTitle: kitsuMetadata?.name,
+      kitsuAliases: kitsuMetadata?.aliases,
       animeType: kitsuMetadata?.animeType,
       imdb_id: prequelImdbMapping.imdb_id,
       title: prequelImdbMapping.title,
@@ -59,6 +61,7 @@ async function createImdbMappingEntry(malEntry) {
       malTitle: malEntry.title,
       kitsuId: kitsuId,
       kitsuTitle: kitsuMetadata?.name,
+      kitsuAliases: kitsuMetadata?.aliases,
       animeType: kitsuMetadata?.animeType,
     };
   }
@@ -70,6 +73,7 @@ async function createImdbMappingEntry(malEntry) {
     malTitle: malEntry.title,
     kitsuId: kitsuId,
     kitsuTitle: kitsuMetadata?.name,
+    kitsuAliases: kitsuMetadata?.aliases,
     animeType: kitsuMetadata?.animeType,
     tvdb_id: tvdbId,
     imdb_id: foundImdbId,
@@ -184,4 +188,4 @@ async function sequence(promises) {
       promise.then(result => func().then(Array.prototype.concat.bind(result))), Promise.resolve([]));
 }
 
-importMalSeason('2025/autumn').then(season => `Finished importing MAL ${season}`);
+importMalSeason('2025/fall').then(season => `Finished importing MAL ${season}`);
